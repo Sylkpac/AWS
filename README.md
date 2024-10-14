@@ -1,11 +1,11 @@
 # Table of Content:
 
-1.  [Securing AWS Accounts and Setting Up Billing Budgets for Cloud Operations](#Securing_AWS_Accounts)
-2.  [Configuring AWS CLI for Secure Cloud Operations](#Configuring-AWS-CLI)
+1.  [Securing AWS Accounts and Setting Up Billing Budgets for Cloud Operations](#securing_aws_accounts)
+2.  [Configuring AWS CLI for Secure Cloud Operations](#configuring-aws-cli)
 
 ------------------------------------------------------
 
-# Securing AWS Accounts and Setting Up Billing Budgets for Cloud Operations<a name="Securing_AWS_Accounts"></a> 
+# Securing AWS Accounts and Setting Up Billing Budgets for Cloud Operations<a name="securing_aws_accounts"></a> 
 
 ## Objective
 This lab will guide you through securing an AWS root account with Multi-Factor Authentication (MFA), creating a dedicated admin user for day-to-day tasks, and setting up a billing budget to monitor cloud expenses. These steps ensure the secure management of AWS environments and help control costs.
@@ -80,7 +80,7 @@ By following these best practices, cloud security engineers ensure a secure and 
 
 ------------------------------------------------------
 
-# Configuring AWS CLI for Secure Cloud Operations<a name="Configuring-AWS-CLI"></a>  
+# Configuring AWS CLI for Secure Cloud Operations<a name="configuring-aws-cli"></a>  
 
 ## Objective
 Learn how to install and configure the AWS Command Line Interface (CLI) for secure access to AWS resources and manage IAM users. This lab will guide you through the process of setting up AWS credentials, configuring AWS CLI, and running a simple command to verify access. These steps are foundational for interacting with AWS services, especially S3 buckets, in a secure and efficient manner.
