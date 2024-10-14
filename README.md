@@ -154,9 +154,3 @@ Confirm that your configuration is correct by reviewing the output. If the list 
 
 Understanding how to securely configure AWS CLI is crucial for a cloud security engineer. The CLI enables you to interact with AWS services programmatically, which can be more efficient than using the AWS Management Console, especially for automation tasks. By using IAM roles and access keys, you minimize the security risks associated with root accounts. Furthermore, managing access to AWS services securely is foundational to cloud security, as misconfigurations or exposed credentials can lead to vulnerabilities and breaches. Ensuring that your environment is set up securely allows you to maintain proper access control and audit user activity efficiently.
 
-
-
-## Why Should a Cloud Security Engineer Know This?
-
-Understanding how to securely configure AWS CLI is crucial for a cloud security engineer. The CLI enables you to interact with AWS services programmatically, which can be more efficient than using the AWS Management Console, especially for automation tasks. By using IAM roles and access keys, you minimize the security risks associated with root accounts. Furthermore, managing access to AWS services securely is foundational to cloud security, as misconfigurations or exposed credentials can lead to vulnerabilities and breaches. Ensuring that your environment is set up securely allows you to maintain proper access control and audit user activity efficiently.
-
