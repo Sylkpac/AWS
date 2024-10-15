@@ -2,6 +2,7 @@
 
 1.  [Securing AWS Accounts and Setting Up Billing Budgets for Cloud Operations](#securing_aws_accounts)
 2.  [Configuring AWS CLI for Secure Cloud Operations](#configuring-aws-cli)
+3.  [Creating and Managing S3 Buckets Using AWS CLI for Secure Cloud Storage](#creating_s3)
 
 ------------------------------------------------------
 
@@ -153,4 +154,82 @@ Confirm that your configuration is correct by reviewing the output. If the list 
 ## Why Should a Cloud Security Engineer Know This?
 
 Understanding how to securely configure AWS CLI is crucial for a cloud security engineer. The CLI enables you to interact with AWS services programmatically, which can be more efficient than using the AWS Management Console, especially for automation tasks. By using IAM roles and access keys, you minimize the security risks associated with root accounts. Furthermore, managing access to AWS services securely is foundational to cloud security, as misconfigurations or exposed credentials can lead to vulnerabilities and breaches. Ensuring that your environment is set up securely allows you to maintain proper access control and audit user activity efficiently.
+
+------------------------------------------------------
+
+# Creating and Managing S3 Buckets Using AWS CLI for Secure Cloud Storage<a name="creating_s3"></a> 
+
+## Objective
+This lab guides you through creating an Amazon S3 bucket using AWS CLI, uploading files to it, and verifying the contents. This hands-on activity helps you understand how to manage S3 buckets programmatically, an essential skill for cloud security engineers who need to monitor, audit, and automate storage operations.
+
+## Prerequisites
+* AWS CLI installed and configured on your system.
+* IAM user with permissions to create S3 buckets and upload files (e.g., `AmazonS3FullAccess` policy).
+* Basic knowledge of the command line interface (CLI).
+
+## Tools Required
+* AWS Management Console (optional, for cross-checking).
+* Terminal with AWS CLI installed.
+
+## Step-by-Step Procedure
+### 1. Create an S3 Bucket
+Run the following command, replacing <your-bucket-name> with a unique name:
+
+`aws s3 mb s3://<your-bucket-name>`
+
+### Example:
+
+`aws s3 mb s3://bucketoctober`
+
+### Explanation:
+* `aws s3`: Tells the CLI to interact with S3.
+* `mb`: Stands for "make bucket."
+* `s3://bucketoctober`: The name of the bucket you’re creating.
+
+### 2. OR Create an S3 Bucket in a Specific Region
+You can specify a region with the `--region` flag:
+
+`aws s3 mb s3://bucketoctober --region <region-name>`
+### Example:
+
+`aws s3 mb s3://bucketoctober --region us-east-1`
+
+### 3. Verify the Bucket Creation
+Check if the bucket was successfully created by listing all buckets:
+
+`aws s3 ls`
+
+If the bucket appears in the list, it means the creation was successful.
+### 4. Create a Test File
+In your terminal, create a simple text file to upload to the S3 bucket:
+
+`echo "hello world" > test.txt`
+
+### 5. Upload the File to the S3 Bucket
+Use the `aws s3 cp` command to copy the file to your S3 bucket:
+
+`aws s3 cp test.txt s3://<your-bucket-name>/`
+### Example:
+
+`aws s3 cp test.txt s3://bucketoctober/`
+### Explanation:
+`cp`: Stands for "copy," used to transfer files between your machine and the S3 bucket.
+
+`s3://bucketoctober/`: The bucket name with a `/` at the end means the file will be uploaded to the root directory of the bucket.
+### 6. Verify the File Upload
+List the contents of your bucket to confirm the file is there:
+
+`aws s3 ls s3://bucketoctober/`
+
+You should see `test.txt` isted in the output.
+
+## Why Should a Cloud Security Engineer Know This?
+Understanding how to create and manage S3 buckets using AWS CLI is essential for cloud security engineers. Automating tasks like creating buckets and uploading files helps enforce security best practices, such as:
+* **Auditing and monitoring**: CLI access allows programmatic checks on bucket configurations and contents.
+* **Automated backups and storage**: Securely upload logs, configurations, or backups to S3.
+* **Controlled access**: Using IAM policies ensures the right people or services access your data.
+* **Incident response**: Engineers can quickly upload or retrieve forensic evidence from S3 buckets.
+
+Mastering these skills enables cloud security engineers to efficiently manage cloud resources while maintaining security and compliance.
+
 
