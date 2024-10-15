@@ -236,7 +236,7 @@ Mastering these skills enables cloud security engineers to efficiently manage cl
 
 ------------------------------------------------------
 
-Creating IAM Users and Assigning Read-Only Access to S3 via AWS CLI<a name="creating_iam"></a>
+# Creating IAM Users and Assigning Read-Only Access to S3 via AWS CLI<a name="creating_iam"></a>
 
 ## Objective
 This lab demonstrates how to create an IAM user and assign a managed policy using AWS CLI. Assigning specific permissions ensures the principle of least privilege, where users get only the access they need, enhancing cloud security.
