@@ -3,6 +3,8 @@
 1.  [Securing AWS Accounts and Setting Up Billing Budgets for Cloud Operations](#securing_aws_accounts)
 2.  [Configuring AWS CLI for Secure Cloud Operations](#configuring-aws-cli)
 3.  [Creating and Managing S3 Buckets Using AWS CLI for Secure Cloud Storage](#creating_s3)
+4.  [Creating IAM Users and Assigning Read-Only Access to S3 via AWS CLI](#creating_iam)
+5.    
 
 ------------------------------------------------------
 
@@ -232,4 +234,74 @@ Understanding how to create and manage S3 buckets using AWS CLI is essential for
 
 Mastering these skills enables cloud security engineers to efficiently manage cloud resources while maintaining security and compliance.
 
+------------------------------------------------------
 
+Creating IAM Users and Assigning Read-Only Access to S3 via AWS CLI<a name="creating_iam"></a>
+
+## Objective
+This lab demonstrates how to create an IAM user and assign a managed policy using AWS CLI. Assigning specific permissions ensures the principle of least privilege, where users get only the access they need, enhancing cloud security.
+
+## Prerequisites
+* AWS CLI installed and configured with appropriate IAM permissions.
+* IAM role or user with permissions to manage IAM users and policies (e.g., IAMFullAccess).
+
+## Tools Required:
+* AWS Management Console (optional for validation).   
+* Terminal with AWS CLI installed and configured.
+
+## Step-by-Step Procedure
+
+### Part 1: Create a New IAM User
+**Run the following command to create a new IAM user:**
+
+`aws iam create-user --user-name <UserName>`
+
+Replace <UserName> with the desired username. 
+
+Example:
+
+`aws iam create-user --user-name Sarah`
+
+**Verify User Creation:**
+List all IAM users to confirm that your new user has been created:
+
+`aws iam list-users`    
+If the new user appears in the output, the creation was successful.
+
+### Part 2: Attach a Policy to the New User
+**Attach the AmazonS3ReadOnlyAccess Policy:**   
+Grant the user read-only access to S3 buckets by attaching the AmazonS3ReadOnlyAccess policy:
+
+`aws iam attach-user-policy --user-name <UserName> --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess`
+
+Example:
+
+`aws iam attach-user-policy --user-name Sarah --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess`
+
+Explanation:
+
+`aws iam`: Specifies that the command interacts with the IAM service.  
+`create-user`: Subcommand to create a new IAM user.   
+`attach-user-policy`: Subcommand to attach a policy to the specified user.    
+`--user-name <UserName>`: Option to specify the IAM user (e.g., Sarah).  
+`--policy-arn`: Provides the Amazon Resource Name (ARN) of the policy being attached.   
+Example ARN: `arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess` grants the user read-only access to S3.
+
+**Verify the Policy Attachment:**   
+Run the following command to list the attached policies for the user and confirm the policy is in place:
+
+`aws iam list-attached-user-policies --user-name <UserName>`
+
+Example:
+
+`aws iam list-attached-user-policies --user-name Sarah`
+
+## Why Should a Cloud Security Engineer Know This?
+IAM user management is essential for secure cloud operations. A cloud security engineer needs to:
+
+* Implement the principle of least privilege by assigning users only the permissions necessary to perform their tasks.
+* Manage access control to ensure compliance with security policies and regulations.
+* Enhance accountability by creating separate IAM users for specific tasks, enabling detailed tracking and auditing.
+* Use managed policies effectively to streamline permission management and reduce the chance of misconfiguration.
+
+Mastering IAM and policies ensures cloud environments remain secure and resilient, with minimal risk of unauthorized access.
