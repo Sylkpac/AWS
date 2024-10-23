@@ -4,7 +4,8 @@
 2.  [Configuring AWS CLI for Secure Cloud Operations](#configuring-aws-cli)
 3.  [Creating and Managing S3 Buckets Using AWS CLI for Secure Cloud Storage](#creating_s3)
 4.  [Creating IAM Users and Assigning Read-Only Access to S3 via AWS CLI](#creating_iam)
-5.    
+5.  [Web Application Architecture on AWS With Summary and Flow](#webapp_arch)
+6.   
 
 ------------------------------------------------------
 
@@ -305,3 +306,192 @@ IAM user management is essential for secure cloud operations. A cloud security e
 * Use managed policies effectively to streamline permission management and reduce the chance of misconfiguration.
 
 Mastering IAM and policies ensures cloud environments remain secure and resilient, with minimal risk of unauthorized access.
+
+------------------------------------------------------
+
+# Web Application Architecture on AWS With Summary and Flow<a name="webapp_arch"></a> 
+
+## Reference & Helpful Resources
+
+* [AWS Architecture Example Diagrams](https://aws.amazon.com/architecture/reference-architecture-diagrams/?achp_navlib4&solutions-all.sort-by=item.additionalFields.sortDate&solutions-all.sort-order=desc&whitepapers-main.sort-by=item.additionalFields.sortDate&whitepapers-main.sort-order=desc&awsf.whitepapers-tech-category=*all&awsf.whitepapers-industries=*all&whitepapers-main.q=web&whitepapers-main.q_operator=AND&awsm.page-whitepapers-main=3)   
+*Find all the AWS provided example architectures here
+
+* Videos I used to learn how to draw Cloud Architecture Diagrams
+  
+  - [Primer](https://www.youtube.com/watch?v=zK8DUZM18UA)
+  - [AWS services explained](https://youtu.be/FDEpdNdFglI?si=3U3g-jCOcf0_YGSX)
+  - [How to copy diagrams from AWS](https://www.youtube.com/watch?v=5oonyR-CyME)
+  - [How to animate diagrams](https://www.youtube.com/watch?v=UibU8g503G0)
+
+* [The practice architecture I choose to copy](https://d1.awsstatic.com/architecture-diagrams/ArchitectureDiagrams/web-application-architecture-on-aws-ra.pdf?did=wp_card&trk=wp_card)
+* [Canva](https://www.canva.com/) along with downloadng all the [AWS icons](https://aws.amazon.com/architecture/icons/) to upload the ones I needed to Canva
+
+
+# ADD MY DIAGRAM HERE
+
+
+## Architecture Components Overview
+
+### [1] Amazon Route 53 (DNS Service)
+
+**Purpose:** Maps domain names to IP addresses and routes traffic based on policies (e.g., latency or geolocation).       
+
+**Why:** Improves availability and latency by routing users to healthy and nearest endpoints.       
+
+**Flow:** 
+- A web client makes a request (e.g., by entering a website URL).
+- Route 53 resolves the domain to a CloudFront endpoint and directs traffic.
+
+### [2] AWS WAF (Web Application Firewall)
+
+**Purpose:** Protects the web application by filtering traffic to block attacks (e.g., SQL injections, DDoS).
+
+**Why:** Ensures that only legitimate traffic reaches your app, preventing malicious requests.
+
+**Flow:** WAF inspects requests before they reach CloudFront, blocking harmful traffic early.
+
+### [3] Amazon CloudFront (Content Delivery Network)
+**Purpose:** Delivers static content (e.g., images, CSS) through a global network of edge locations to reduce latency.
+
+**Why:** Speeds up content delivery by caching assets closer to users.
+
+**Key Detail:** 
+- *Edge Locations:* These are data centers around the globe used by CDNs like CloudFront to store cached content.
+- *TLS/SSL Certificates:* CloudFront secures connections using certificates from AWS Certificate Manager (ACM).
+
+**Flow:** 
+1. CloudFront checks its edge location cache for the requested content.
+
+2. If cached, it serves the content to the client directly.
+3. If not, CloudFront fetches content from the origin (e.g., S3 or a backend server).
+
+### [4] Amazon S3 (Storage Service)
+
+**Purpose:** Stores static assets (e.g., images, CSS files) and backups.
+
+**Why:** Reduces the need to store static content on EC2 instances, improving cost efficiency.
+
+**Analogy:** Think of CloudFront as RAM (fast access), while S3 is like disk storage (slower but larger).
+
+### [5] AWS Certificate Manager (ACM)
+
+**Purpose:** Manages SSL/TLS certificates for encrypted communication.
+
+**Why:** Ensures secure connections between users and services without manual certificate renewals.
+
+**Flow:** 
+- ACM-provided certificates are used by CloudFront and the Application Load Balancer (ALB) to encrypt traffic.
+- Certificates are provisioned once and attached to resources, not generated per connection.
+
+### [6] Application Load Balancer (ALB)
+
+**Purpose:** Distributes traffic evenly across multiple backend EC2 instances (which will act as a backend server).
+
+**Why:** Increases fault tolerance by rerouting traffic if an instance becomes unhealthy.
+
+**Flow:**
+
+1. ALB forwards requests from CloudFront to backend EC2 instances.
+2. It ensures that the load is balanced across multiple instances.
+
+
+### [7] NAT Gateway
+
+**Purpose:** Allows EC2 instances in private subnets to access the internet (e.g., for updates) without exposing them to incoming traffic.
+
+**Why:** Adds a layer of security by keeping private instances shielded from the public internet.
+
+### [8] Auto Scaling Group
+
+**Purpose:** Dynamically adds or removes EC2 instances based on traffic.
+
+**Why:** Helps maintain performance during demand spikes and saves costs during idle periods.
+
+**Flow:** If traffic increases, new instances launch automatically. If traffic drops, instances are terminated.
+
+### [9] Amazon RDS (Relational Database Service)
+
+**Purpose:** Provides a managed relational database for application data.
+
+**why:** Automates backups and scaling, reducing administrative overhead.
+
+**Flow:**
+- Backend app servers interact with the primary RDS instance for database operations.
+- If the primary database fails, the standby instance takes over to ensure availability.
+
+### [10] Amazon ElastiCache (Caching Service)
+
+**Purpose:** Caches frequently accessed data to reduce database load.
+
+**Why:** Improves response times by avoiding repeated queries to the database.
+
+### [11] Amazon EFS (Elastic File System)
+
+**Purpose:** Provides shared storage accessible by multiple EC2 instances.
+
+**Why:** Useful for sharing files (e.g., logs) between servers.
+
+## VPC (Virtual Private Cloud) vs. AWS Cloud
+
+**AWS Cloud:** Refers to the broader AWS infrastructure where global services like Route 53 and CloudFront operate. These services must remain public-facing to handle internet traffic.
+
+**VPC:**  A private, isolated network inside the AWS Cloud, hosting resources like EC2 instances, RDS, and NAT gateways with controlled access.
+
+## Subnet Roles
+
+**Public Subnet (Web Layer):** Hosts public-facing resources like web servers and NAT gateways.
+
+**Application Subnet (App Layer):** Runs backend logic and application servers privately.
+
+**Database Subnet:** Stores sensitive data securely without internet exposure.
+
+**Public NAT Gateway Subnet:** Allows private instances to make outbound internet requests.
+
+## Client Request Flow – End-to-End Journey
+
+### 1. Route 53 (DNS Resolution)
+
+- Client sends a request to access the website.
+- Route 53 resolves the domain to the nearest CloudFront endpoint.
+
+### 2. AWS WAF (Security Inspection)
+
+- WAF inspects the request for malicious content (like SQL injections).
+- If safe, the request moves to CloudFront.
+
+### 3. CloudFront (Content Delivery)
+
+- CloudFront serves cached content from its nearest edge location if available.
+- If not, it forwards the request to the backend servers through the ALB.
+
+### 4. Amazon S3 (Static Content Retrieval)
+
+- If the requested content is static (like images), CloudFront pulls it from S3 and caches it.
+
+### 5. ACM (Secure Communication)
+
+- CloudFront or ALB uses ACM certificates to establish a secure HTTPS connection with the client.
+
+### 6. Application Load Balancer (Traffic Distribution)
+
+- For dynamic content, ALB routes requests to the appropriate backend EC2 instances.
+
+### 7. NAT Gateway (Private Internet Access)
+
+- If backend servers need internet access (e.g., for patches), they use the NAT gateway.
+
+### 8. Auto Scaling Group (Scaling Resources)
+
+- Auto Scaling adjusts the number of instances based on demand.
+
+### 9. RDS (Database Operations)
+
+- Backend servers interact with RDS to retrieve or store data.
+
+### 10. ElastiCache (Faster Data Retrieval)
+
+- Frequently accessed data is cached in ElastiCache for faster response times.
+
+### 11. EFS (Shared Storage)
+
+- If servers need access to shared files, they use EFS.
