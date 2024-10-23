@@ -326,9 +326,7 @@ Mastering IAM and policies ensures cloud environments remain secure and resilien
 * [The practice architecture I choose to copy](https://d1.awsstatic.com/architecture-diagrams/ArchitectureDiagrams/web-application-architecture-on-aws-ra.pdf?did=wp_card&trk=wp_card)
 * [Canva](https://www.canva.com/) along with downloadng all the [AWS icons](https://aws.amazon.com/architecture/icons/) to upload the ones I needed to Canva
 
-
-# ADD MY DIAGRAM HERE
-
+![My Web App Example Diagram](https://github.com/Sylkpac/Files-/blob/main/Web%20App%20Gif.gif)
 
 ## Architecture Components Overview
 
