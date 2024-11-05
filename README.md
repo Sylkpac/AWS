@@ -5,7 +5,7 @@
 3.  [Creating and Managing S3 Buckets Using AWS CLI for Secure Cloud Storage](#creating_s3)
 4.  [Creating IAM Users and Assigning Read-Only Access to S3 via AWS CLI](#creating_iam)
 5.  [Web Application Architecture on AWS With Summary and Flow](#webapp_arch)
-6.   
+6.  [Designing and Evaluating Architectural Styles for E-commerce Solutions](#ecommerce_styles) 
 
 ------------------------------------------------------
 
@@ -497,7 +497,7 @@ Mastering IAM and policies ensures cloud environments remain secure and resilien
 
 ------------------------------------------------------
 
-# Designing and Evaluating Architectural Styles for E-commerce Solutions
+# Designing and Evaluating Architectural Styles for E-commerce Solutionss<a name="ecommerce_styles"></a> 
 
 ## **Monolithic Architecture**: Design Example, Workflow Explanation, Pros & Cons
 
