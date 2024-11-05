@@ -489,6 +489,12 @@ Mastering IAM and policies ensures cloud environments remain secure and resilien
 
 ### 10. ElastiCache (Faster Data Retrieval)
 
+- Frequently accessed data is cached in ElastiCache for faster response times.
+
+### 11. EFS (Shared Storage)
+
+- If servers need access to shared files, they use EFS.
+
 ------------------------------------------------------
 
 # Designing and Evaluating Architectural Styles for E-commerce Solutions
@@ -595,9 +601,3 @@ Choosing the right architectural style for e-commerce applications depends on se
 Understanding these architectural styles will enable stakeholders to make informed decisions that align with their project goals and resources.
 
 
-
-- Frequently accessed data is cached in ElastiCache for faster response times.
-
-### 11. EFS (Shared Storage)
-
-- If servers need access to shared files, they use EFS.
