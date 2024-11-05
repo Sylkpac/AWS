@@ -327,7 +327,7 @@ Mastering IAM and policies ensures cloud environments remain secure and resilien
 * Design app I used - [Canva](https://www.canva.com/)
 * Downloaded all the [AWS icons](https://aws.amazon.com/architecture/icons/) to then upload the ones I needed to Canva
 
-![My Web App Example Diagram](https://raw.githubusercontent.com/Sylkpac/Files-/refs/heads/main/Ecommerce%20Monolothic%20.png)
+![My Web App Example Diagram](https://raw.githubusercontent.com/Sylkpac/Files-/refs/heads/main/Web%20App%20Gif.gif)
 
 ## Architecture Components Overview
 
