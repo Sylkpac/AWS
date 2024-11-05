@@ -523,7 +523,7 @@ Mastering IAM and policies ensures cloud environments remain secure and resilien
 
 ## **Microservices Architecture**: Design Example, Workflow Explanation, Pros & Cons
 
-IMAGE 
+![Ecommerce Microservices Architecture](https://raw.githubusercontent.com/Sylkpac/Files-/refs/heads/main/Ecommerce%20Microservices%20Architecture.png) 
 
 ### Advantages of Microservices Architecture 
 
