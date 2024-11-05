@@ -558,7 +558,7 @@ Mastering IAM and policies ensures cloud environments remain secure and resilien
 
 ## **Serverless Architecture**: Design Example, Workflow Explanation, Pros & Cons
 
-IMAGE
+![Ecommerce Serverless Architecture](https://raw.githubusercontent.com/Sylkpac/Files-/refs/heads/main/Serverless%20Ecommerce%20Architecture.png) 
 
 ### Advantages of Microservices Architecture 
 
