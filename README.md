@@ -495,7 +495,7 @@ Mastering IAM and policies ensures cloud environments remain secure and resilien
 
 ## **Monolithic Architecture**: Design Example, Workflow Explanation, Pros & Cons
 
-![Ecommerce Monolothic]([https://github.com/Sylkpac/Files-/blob/main/Web%20App%20Gif.gif](https://github.com/Sylkpac/Files-/blob/main/Ecommerce%20Monolothic%20.png))
+![Ecommerce Monolothic](https://raw.githubusercontent.com/Sylkpac/Files-/refs/heads/main/Ecommerce%20Monolothic%20.png)
 
 ### Advantages of Monolithic Architecture
 
