@@ -5,7 +5,9 @@
 3.  [Creating and Managing S3 Buckets Using AWS CLI for Secure Cloud Storage](#creating_s3)
 4.  [Creating IAM Users and Assigning Read-Only Access to S3 via AWS CLI](#creating_iam)
 5.  [Web Application Architecture on AWS With Summary and Flow](#webapp_arch)
-6.  [Designing and Evaluating Architectural Styles for E-commerce Solutions](#ecommerce_styles) 
+6.  [Designing and Evaluating Architectural Styles for E-commerce Solutions](#ecommerce_styles)
+7.  [Designing Scalable Architecture](#designing_scalable_architecture)
+8.  
 
 ------------------------------------------------------
 
@@ -600,4 +602,311 @@ Choosing the right architectural style for e-commerce applications depends on se
 
 Understanding these architectural styles will enable stakeholders to make informed decisions that align with their project goals and resources.
 
+
+------------------------------------------------------
+# Designing Scalable Architecture<a name="designing_scalable_architecture"></a> 
+
+## Let’s design a social media app
+### Core Functionalities 
+* **User Registration/Login**: Users can create accounts and sign in
+* **User Profiles**: Display user information, posts, followers, and following lists.
+* **News Feed**: Shows posts from friends or accounts a user follows.
+* **Posting/Sharing**: Users can create text, image, or video posts.
+* **Real-Time Notifications**: Alerts users about likes, comments, follows, etc.
+
+![VERTICAL Scaling Diagram](https://raw.githubusercontent.com/Sylkpac/Files-/refs/heads/main/Vertical%20Scaling%20Architecture%20.png)
+------
+----- 
+## Vertical Scaling Architecture for a Social Media App
+This architecture is designed to support the needs of a social media app, ensuring it can handle growing traffic while remaining fast, secure, and reliable. Let’s break down the flow and why each part is essential, using simple terms.
+
+**1. Amazon Route 53 - DNS Service**
+* **Purpose**: Acts as the address book of your app. When users type your app's URL, Route 53 helps direct them to your app's location in the cloud.
+* **Why**: Without this, users wouldn’t know how to reach your app!
+
+**2. AWS WAF - Web Application Firewall**
+* **Purpose**: Protects your app from harmful traffic, like hackers or bots.
+* **Why**: Social media apps often deal with attacks, so this acts like a security guard that blocks bad actors from getting in.
+
+**3. Amazon CloudFront - Content Delivery Network (CDN)**
+* **Purpose**: Speeds up how quickly users see content like images and videos by delivering it from servers close to them.
+* **Why**: No one wants a slow app! Social media apps with lots of images and videos need CloudFront to make things load fast, no matter where users are.
+
+**4. Amazon S3 - Static Storage and Backup (for Web Server)**
+* **Purpose**: Stores things like your app’s images, CSS styles, and JavaScript files that make your app look and work correctly.
+* **Why**: Offloading these files from the web server reduces the burden, so your app runs faster.
+
+**5. AWS Certificate Manager (ACM)**
+* **Purpose**: Ensures all data between users and your app is secure by encrypting it.
+* **Why**: Imagine sending private messages on a social media app, this keeps those messages safe from prying eyes.
+
+**6. Application Load Balancer (Inbound Traffic)**
+* **Purpose**: Acts like a traffic controller, directing users to the right server (web or application) based on what they need.
+* **Why**: This keeps your app organized and ensures users don’t experience downtime, even when traffic gets busy.
+
+**7. Web Server (Vertical Scaling EC2 Instance)**
+* **Purpose**: Handles the front-end of your app—what users see and interact with.
+* **Why**: By upgrading (vertical scaling) this server when needed, it ensures the app stays responsive as more users join.
+
+**8. Application Server (Vertical Scaling EC2 Instance)**
+* **Purpose**: Processes the app’s logic, like logging in users or creating posts.
+* **Why**: This is where the "brains" of the app are. Vertical scaling here ensures it can handle heavy processing as user activity grows.
+
+**9. Amazon S3 - Static Storage and Backup (for User Media)**
+* **Purpose**: Stores uploaded user content like photos, videos, or profile pictures.
+* **Why**: Social media apps deal with huge amounts of media, and S3 is perfect for storing this securely and at scale.
+
+**10. Amazon RDS - Database**
+* **Purpose**: Stores user data like profiles, posts, relationships, and comments.
+* **Why**: Scaling up this database ensures it can handle the increasing number of users and data without slowing down. 
+
+**11. Amazon ElastiCache - Caching Service**
+* **Purpose**: Saves commonly used data (like user profiles or trending posts) so the app doesn’t have to fetch it repeatedly from the database.
+* **Why**: This speeds up the app and reduces pressure on the database, improving performance for everyone.
+
+## Why Vertical Scaling Architecture for a Social Media App?
+
+1. **Simple Growth**: Instead of managing multiple smaller servers, you upgrade individual components (like the database or servers) as traffic increases.
+2. **Handles User Growth**: Social media apps often see rapid growth, and vertical scaling ensures the app can keep up without complex changes.
+3. **Cost-Effective for Starters**: For small to medium-sized apps, scaling up one server at a time is easier and cheaper than managing many servers.
+
+
+![HORIZONTAL Scaling Diagram](https://raw.githubusercontent.com/Sylkpac/Files-/refs/heads/main/Horizontal%20Scaling%20Architecture.png) 
+--------
+----
+ ## Pros and Cons of Vertical and Horizontal Scaling for a Social Media App:
+
+ ### Vertical Scaling
+Adding more resources (CPU, memory, storage) to a single server.
+
+### Pros
+
+**1. Simplicity**:
+* Easier to manage because there's only one server.
+* No need for complex distributed systems (e.g., load balancing, session management).
+  
+**2. Lower Initial Cost**:
+* Fewer resources are required at the start (e.g., only one server to manage and monitor).
+  
+**3. Quick to Implement**:
+* Upgrading hardware (e.g., switching to a more powerful EC2 instance) is straightforward.
+* No need for architectural changes.
+  
+**4. Less Latency**:
+* All operations occur on a single machine, reducing overhead caused by distributed communication.
+
+### Cons
+**1. Scalability Ceiling**:
+* Limited by the physical capacity of the server.
+* Cannot handle very large user bases typical of social media apps in the long term.
+  
+**2. Single Point of Failure**:
+* If the server fails, the entire app goes offline, impacting user experience.
+  
+**3. Performance Bottlenecks**:
+* High traffic can overwhelm even the most powerful single server, leading to slow response times or downtime.
+  
+**4. Expensive Upgrades at Scale**:
+* Scaling up to high-performance servers can get expensive, with diminishing returns in performance.
+
+
+### Horizontal Scaling
+Adding more servers to distribute the load.
+
+### Pros
+**1. Better Scalability**:
+* Can handle increased traffic by adding more instances (servers) without hitting a hardware limit.
+* Essential for social media apps with millions of users.
+  
+**2. Improved Availability**:
+* Redundancy across multiple servers ensures no single point of failure.
+* Users remain unaffected if one server goes down.
+
+**3. Cost Efficiency**:
+* Resources can be dynamically added or removed to match demand (using AWS Auto Scaling), optimizing costs.
+
+**4.Global Reach**:
+* Servers can be distributed geographically, improving latency for users worldwide.
+
+### Cons 
+
+**1. Increased Complexity**:
+* Requires load balancers (e.g., ALB), database replication, and session management across servers.
+* Debugging and troubleshooting are more challenging in a distributed system.
+
+**2. Consistency Challenges**:
+* Synchronizing data across multiple instances and ensuring eventual consistency (e.g., user actions like likes, follows) can be complex.
+
+**3. Higher Initial Effort**:
+* Requires designing the architecture to handle distributed computing from the start (e.g., stateless web servers, shared caching layers).
+
+**4. Latency Overhead**:
+* Communication between servers (e.g., app servers and databases) may add latency, especially under high loads.
+
+### Which to Choose for a Social Media App?
+
+**Early Stages (Vertical Scaling)**:
+* Suitable when the app has a smaller user base and traffic is manageable with a single EC2 instance.
+* Simplifies development and reduces costs in the initial phase.
+
+**Growth Phase (Horizontal Scaling)**:
+* Necessary as traffic grows and user expectations (e.g., fast load times, high availability) demand more sophisticated infrastructure.
+* Social media apps generally shift to horizontal scaling early on because of unpredictable traffic patterns and the need for reliability.
+
+
+![SERVERLESS Scaling Diagram](https://raw.githubusercontent.com/Sylkpac/Files-/refs/heads/main/Serverless%20Architecture.png)
+----
+----
+
+## Serverless Components, What They Do, and Their Importance on a Social Media App
+**1. Users**: 
+Represents app users accessing the system.
+
+**2. Route 53 (Domain Name System)**: 
+Resolves the domain name (e.g., www.socialapp.com) to the API Gateway's endpoint.
+
+**3. API Gateway (Request Router)**: 
+Entry point for all HTTP requests. Directs user requests to the right function for processing.
+
+**4. Lambda**: User Profiles: Handles user profile-related logic, such as registration, login, and user data retrieval.
+
+**5. DynamoDB (Data Storage)**: Stores user profile data, posts, likes, and comments.
+
+**6. DynamoDB Streams (Triggering Event Updates)**: Detects changes in the database and triggers related tasks.
+
+**7. Lambda Post Handling**: Processes posts (e.g., creation, updates, and deletion) using data from DynamoDB Streams.
+
+**8. Lambda Notifications**: Sends notifications for actions like likes and comments. Triggered by DynamoDB Streams changes.
+
+**9. Amazon SNS (Push Notifications)**: Distributes notifications to users' devices via push notifications.
+
+**10. Lambda: Upload Media**: Handles user-uploaded media (e.g., images and videos).
+
+**11. Amazon S3 (Media Storage)**: Stores media files uploaded by users.
+
+**12. CloudFront (Static Content Delivery)**: Distributes media files (e.g., images, videos) globally for fast delivery.
+
+**13. Lambda: Retrieve Media**: Fetches media files stored in Amazon S3 for user access.
+
+## Differences in Scaling Behavior Between Serverless and Traditional Server-Based Scaling
+Let’s compare how serverless and traditional server-based scaling handle key aspects such as cost, operational overhead, and scalability limits.
+
+### 1. Cost Efficiency 
+
+**Serverless Scaling (e.g., Lambda, DynamoDB, S3)**
+
+* **Pay-as-you-go model**: You are billed only for the compute time or database usage when the function or database is actively in use. For instance:
+    * **Lambda**: Executes the "User Profiles Lambda" or "Post Handling Lambda" only when triggered (e.g., user login or post creation). Idle times incur no cost.
+    * **DynamoDB Streams**: Only processes changes (like a new comment or post), and you pay based on throughput.
+    * **S3**: Charges are based on the volume of stored data and transfer requests. Uploads or retrievals trigger Lambda Layer 2 functions.
+* **Benefits for social media apps**:
+Cost scales directly with user activity. If there’s a sudden spike in usage (e.g., a viral post), costs rise temporarily but drop when usage decreases, avoiding fixed server costs.
+
+**Traditional Server-Based Scaling (e.g., EC2 Instances, RDS Databases)**
+* **Fixed infrastructure costs**: Even during idle times, you’re paying for pre-provisioned resources (e.g., EC2 instances or database servers). For example:
+    * A large database server provisioned for user profiles and posts must remain online 24/7, whether it’s being fully utilized or not.
+     * Autoscaling EC2 groups add costs even if resources are scaled down during low traffic.
+* **Challenges for social media apps**:
+Predicting traffic is difficult. Over-provisioning leads to wasted costs, while under-provisioning risks service disruptions during spikes.
+
+### 2. Operational Overhead
+
+**Serverless Scaling**
+* **Automated scaling**: Services like AWS Lambda and DynamoDB automatically scale based on demand. For instance:
+    * **Lambda Functions**: Each request (e.g., "Upload Media Lambda") scales independently, creating as many instances as needed without manual intervention.
+For example, if 100 users upload media at the same time, AWS Lambda will automatically scale to run 100 instances of the "Upload Media Lambda" function, without any manual effort.
+  * **DynamoDB**: Handles thousands of concurrent queries without requiring database administrators to optimize capacity.
+* **Low maintenance**: There’s no need to manage servers, patch operating systems, or optimize compute resources. Developers focus solely on writing code for specific tasks like notifications or user profiles.
+* **Benefits for social media apps**:
+Simplifies managing unpredictable traffic patterns, such as sudden user spikes due to trending posts.
+
+### Traditional Server-Based Scaling
+* **Manual scaling**: Requires system administrators to monitor resource usage and adjust manually or configure autoscaling policies, which may not react quickly enough to unexpected traffic spikes.
+    * For example, scaling EC2 instances during peak usage requires configuring thresholds for CPU or memory usage.
+     * Databases like RDS may need manual tuning, sharding (splitting the database into smaller, independent pieces called shards, where each shard handles a portion of the data. This is done to improve scalability and performance by distributing the workload across multiple database instances. Each shard typically stores data based on a specific criterion, like user ID ranges or geographic regions), or replication for increased traffic.
+* **High maintenance**: Involves patching, monitoring, and ensuring server availability, which requires dedicated IT teams.
+* **Challenges for social media apps**:
+Operational overhead increases with user growth, making management complex and time-consuming.
+
+### Scalability Limits
+
+**Serverless Scaling**
+* **Elastic Scaling**: Serverless components like AWS Lambda and DynamoDB are designed to scale seamlessly with demand. For example:
+    * **AWS Lambda**: Automatically manages tens of thousands of concurrent function executions, ensuring each task—such as retrieving user posts or sending notifications—runs independently without delays (unless configured with specific limits).
+    * **Amazon S3 and CloudFront**: Effortlessly scale to handle massive volumes of media uploads and deliver content to users worldwide, ensuring smooth performance even during traffic spikes.
+
+**Traditional Server-Based Scaling**
+* **Finite scalability**: Even with autoscaling groups for EC2, there are limits to how many instances can be provisioned at once. Scaling databases like RDS often requires vertical scaling (adding more powerful hardware), which has physical and cost limitations.
+* **Challenges for social media apps**:
+A surge in media uploads or user activity can overwhelm traditional servers, causing delays or downtime. Pre-scaling to handle these peaks can result in resource wastage during low-traffic periods.
+
+### Key Takeaways for Social Media Apps
+
+* **Serverless Advantages**:
+    * **Cost-effective for variable workloads**: Pay only for active usage.
+    * **Near-infinite scalability**: Seamlessly handles traffic spikes without risking downtime.
+     * **Reduced operational burden**: Focus on app development instead of managing infrastructure.
+* **Traditional Server-Based Challenges**:
+    * Fixed infrastructure costs make it harder to adapt to fluctuating user demands.
+    * Manual scaling and server maintenance increase complexity as the app grows.
+    * Scalability is capped by physical resource limitations.
+
+## Summary
+
+|Criteria| Horizontal Scaling| Serverless Architecture |
+|------------|-------------|-------------|
+| Performance|Predictable under steady load, less flexible for unexpected spikes|Instantly scales with demand, handles spikes effortlessly|
+|Cost| Fixed cost regardless of use, waste during idle times| Pay-as-you-go, cost-efficient for irregular traffic|
+| Development| Complex infrastructure, requires expertise| Simplified, focus on business logic|
+| Deployment| Potential downtime, complex strategies| Faster and independent deployments
+|Maintenance|Continuous patching and optimization needed|Minimal, AWS manages most aspects|
+|Use Cases|Stateful apps, predictable loads, legacy systems|Event-driven, irregular loads, fast iteration|
+
+## Best Security Practices for Cloud Architectures (Simplified)
+When building applications on the cloud, keeping them secure is just as important as making them fast and reliable. Whether you’re scaling your servers horizontally or using serverless architecture, here are some simple practices to keep your application and data safe.
+
+**1. Protect Your Network**
+* **Keep things private**: Use a VPC (Virtual Private Cloud) to keep sensitive resources hidden from the public internet.
+* **Control who gets in**: Use security groups and firewalls to decide which devices can connect to your servers.
+* **Block bad traffic**: Use a Web Application Firewall (WAF) to filter out dangerous requests, like hacking attempts.
+
+**2. Manage Access Wisely**
+* **Only give what’s needed**: Follow the least privilege principle, meaning users and systems should only have access to what they need to do their job.
+* **Add an extra lock**: Use Multi-Factor Authentication (MFA) to require both a password and a code to log in.
+* **Assign roles smartly**: Give specific permissions to each server or service, so they only access what they’re supposed to.
+
+**3. Protect Your Data**
+* **Encrypt everything**: Make sure data is scrambled while it’s stored and when it’s being sent between users and servers (use tools like SSL/TLS and AWS KMS for this).
+* **Back it up**: Regularly save copies of important data in case of accidents or attacks.
+* **Hide sensitive information**: Mask or anonymize personal data so even if someone gets in, they won’t find much.
+
+**4. Monitor and Track Activity**
+* **Keep an eye on things**: Use AWS CloudTrail and CloudWatch to log and monitor all activity. This helps spot unusual behavior, like hacking attempts.
+* **Set alerts**: Get notified if something strange happens, like a sudden surge in traffic or unauthorized access.
+* **Check regularly**: Review your setup often to make sure everything is secure and up to date.
+
+**5. Secure APIs and Connections**
+* **Guard your entry points**: Protect your APIs (the gateways to your system) with tools like API Gateway and add user authentication.
+* **Limit traffic**: Set up limits to prevent someone from overloading your system with too many requests.
+
+**6. Focus on Serverless Security**
+* **Keep permissions tight**: Make sure each Lambda function can only do what it’s supposed to.
+* **Secure triggers**: Only allow trusted sources (like DynamoDB Streams) to trigger your serverless functions.
+* **Use private networks**: Run sensitive serverless functions inside a VPC to keep them safe from outside threats.
+
+**7. Make Scaling Secure**
+* **Keep systems updated**: Regularly patch servers and software to fix security holes.
+* **Set proper rules**: Ensure auto-scaling and load balancers are configured to block any unauthorized traffic.
+
+**8. Protect Stored Data**
+* **Lock your files**: Use S3 bucket policies to make sure only the right people can access stored files.
+* **Track changes**: Enable versioning on S3 to keep a record of changes and recover old versions if needed.
+
+**9. Plan for the Worst**
+* **Automate responses**: Set up systems to react automatically to threats, like blocking a suspicious user.
+* **Be ready**: Have a clear plan for how to handle security incidents, so your team knows what to do in an emergency.
+
+### Final Thought
+
+Securing cloud architectures doesn’t have to be overwhelming. By keeping access limited, encrypting data, and monitoring your system, you can build an application that’s safe and reliable. Remember, security isn’t a one-time task—it’s an ongoing effort to protect your users and their data while adapting to new challenges.
 
