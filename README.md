@@ -7,7 +7,7 @@
 5.  [Web Application Architecture on AWS With Summary and Flow](#webapp_arch)
 6.  [Designing and Evaluating Architectural Styles for E-commerce Solutions](#ecommerce_styles)
 7.  [Designing Scalable Architecture](#designing_scalable_architecture)
-8.  
+8.  [System Design for a Video-Sharing Platform](#video_sharing_platform)
 
 ------------------------------------------------------
 
@@ -909,4 +909,163 @@ When building applications on the cloud, keeping them secure is just as importan
 ### Final Thought
 
 Securing cloud architectures doesn’t have to be overwhelming. By keeping access limited, encrypting data, and monitoring your system, you can build an application that’s safe and reliable. Remember, security isn’t a one-time task—it’s an ongoing effort to protect your users and their data while adapting to new challenges.
+
+------------------------------------------------------
+# System Design for a Video-Sharing Platform<a name="video_sharing_platform"></a> 
+
+###  Overview
+This document provides a detailed explanation of the system design for a scalable and secure video-sharing platform. It explains the choices made for each component, the technologies used, the data flow, and how the system meets functional, scalability, and cybersecurity requirements.
+
+## Functional Requirements
+
+* Users can upload videos.
+* Users can stream videos globally with minimal latency.
+* Videos are processed for multiple resolutions and formats.
+* Flagged content is detected and isolated automatically.
+* User and system data must be secure.
+
+## Non-Functional Requirements
+
+* **Scalability**: Handle high traffic without performance degradation.
+* **Resilience**: Ensure minimal downtime and fault tolerance.
+* **Low Latency**: Optimize streaming and interactions for users globally.
+* **Security**: Protect user data and system integrity.
+
+## Architecture Component Details
+
+***1. Route 53 (DNS Routing)***
+
+**Technology**: Amazon Route 53.    
+**Purpose**: Provides reliable and scalable Domain Name System (DNS) routing.   
+**Data Flow**: Directs user traffic to the appropriate resources with low latency.  
+**Scalability**: Automatically scales to handle DNS queries globally.   
+**Security**: Ensures availability with DDoS protection.    
+
+
+***2. Web Application Firewall (WAF)***
+
+**Technology**: AWS WAF.    
+**Purpose**: Protects against common web application vulnerabilities.   
+**Data Flow**: Filters malicious traffic before reaching downstream services.   
+**Scalability**: Automatically adjusts to handle fluctuating traffic.   
+**Security**: Mitigates malicious traffic, including SQL injection and XSS. 
+
+
+***3. CloudFront (UI Delivery)***
+
+**Technology**: Amazon CloudFront (CDN).  
+**Purpose**: Distributes static UI content globally, ensuring low latency and resilience.   
+**Data Flow**: Users access static UI files through CloudFront’s edge locations.    
+**Scalability**: Automatically scales to handle high traffic.   
+**Security**: Enforces HTTPS for secure connections.    
+
+***4. S3 (Static Content Storage)***
+   
+**Technology**: Amazon S3.  
+**Purpose**: Stores static UI files.    
+**Data Flow**: CloudFront fetches static files from S3 for user access.     
+**Scalability**: Supports high availability with automatic replication.  
+**Security:** Data encrypted at rest and access controlled through IAM policies.     
+
+***5. API Gateway***
+
+**Technology**: Amazon API Gateway.     
+**Purpose**: Manages secure communication for video uploads and metadata access.      
+**Data Flow**: User requests are routed through the API Gateway to backend Lambda functions.    
+**Scalability**: Handles millions of requests per second.   
+**Security**: Implements authentication and rate limiting to prevent abuse. 
+
+***6. Lambda (Backend Logic)***
+
+**Technology**: AWS Lambda.     
+**Purpose**: Processes backend tasks like authentication, API calls, and data validation.   
+**Data Flow**: Interacts with the API Gateway, S3 buckets, and the database.    
+**Scalability**: Automatically scales to handle traffic spikes.     
+**Security**: Minimal access permissions (principle of least privilege).    
+
+***7. Lambda (Video Processing)***
+
+**Technology**: AWS Lambda.     
+**Purpose**: Transcodes videos into multiple resolutions and stores metadata in the database.   
+**Data Flow**: Processes videos and stores results in S3 and the database.  
+**Scalability**: Automatically scales to handle concurrent video uploads.   
+**Security**: Access permissions restricted to relevant S3 buckets and the database.    
+
+***8. Relational Database***
+
+**Technology**: Amazon RDS (MySQL).      
+**Purpose**: Stores video metadata, user data, and processing results.  
+**Data Flow**: Backend and processing Lambdas read/write metadata to the database.  
+**Scalability**: Multi-AZ deployment for high availability.     
+**Security**: Encrypted at rest, IAM authentication enabled, and automated backups. 
+
+***9. S3 (Video Upload & Storage)***
+
+**Technology**: Amazon S3.      
+**Purpose**: Stores uploaded videos.    
+**Data Flow**: Videos uploaded via the API Gateway are stored in this bucket.   
+**Scalability**: High durability with multi-AZ replication.     
+**Security**: Encryption at rest, versioning enabled for file integrity.    
+
+***10. AWS Rekognition***
+
+**Technology**: AWS Rekognition (AI service).       
+**Purpose**: Detects inappropriate or unsafe content in uploaded videos.        
+**Data Flow**: Processes videos stored in S3 and flags content as needed.       
+**Scalability**: Handles content analysis at scale.     
+**Security**: Secure API integration with IAM roles.        
+
+***11. S3 (Flagged Video Storage)***  
+
+**Technology**: Amazon S3.  
+**Purpose**: Stores flagged videos for moderation.          
+**Data Flow**: Videos flagged by Rekognition are moved here.        
+**Scalability**: Supports high availability and resilience.     
+**Security**: Access restricted to moderators and encrypted at rest.        
+
+***12.  CloudFront (Content Delivery)***
+
+**Technology**: Amazon CloudFront (CDN).        
+**Purpose**: Delivers processed videos globally.        
+**Data Flow**: Serves videos from S3 to users with minimal latency.     
+**Scalability**: Automatically scales to handle millions of viewers.        
+**Security**: Enforces HTTPS connections and integrates with WAF.       
+
+***13.  Video Streaming***
+
+**Technology**: HLS (HTTP Live Streaming) served via CloudFront.        
+**Purpose**: Provides smooth playback of videos with adaptive streaming.        
+**Data Flow**: Videos are segmented and streamed via CloudFront to users.       
+**Scalability**: Leverages CloudFront’s global edge locations.      
+**Security**: Encrypted streaming links with token-based authentication.        
+
+## Cybersecurity Standards Implementation
+
+**Data Encryption:**    
+* Data in transit secured with HTTPS.
+* Data at rest encrypted in S3 and RDS
+  
+**Access Control:** 
+* IAM roles and policies enforce the principle of least privilege.
+* API Gateway authentication.
+  
+**High Availability and Resilience:**
+* Multi-AZ replication for databases and S3.
+* CloudFront ensures global availability and cached content delivery.
+
+## Data Flow Summary
+1. Users access the platform via a globally distributed UI (CloudFront).  
+
+2. API Gateway processes user requests, such as video uploads.  
+3. Backend Lambda validates and routes the requests to S3 or the database.
+4. Uploaded videos are stored in S3, processed by Lambda, and analyzed by Rekognition.
+5. Metadata is stored in RDS, and flagged videos are moved to a restricted S3 bucket.
+6. Processed videos are delivered to users via CloudFront with adaptive streaming.
+
+## Why This Design?
+Serverless Architecture: Minimizes operational overhead and ensures scalability.
+AWS Services: Provide built-in security, scalability, and integration capabilities.
+Separation of Concerns: Each component has a specific role, improving maintainability and scalability.
+Focus on Security: Encryption, IAM, Threat Prevention  
+
 
