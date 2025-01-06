@@ -916,6 +916,8 @@ Securing cloud architectures doesn’t have to be overwhelming. By keeping acces
 ###  Overview
 This document provides a detailed explanation of the system design for a scalable and secure video-sharing platform. It explains the choices made for each component, the technologies used, the data flow, and how the system meets functional, scalability, and cybersecurity requirements.
 
+![Video-Sharing Platform Architecture](https://raw.githubusercontent.com/Sylkpac/Files-/refs/heads/main/Video-Sharing%20Platform%20Architecture.png)
+
 ## Functional Requirements
 
 * Users can upload videos.
@@ -1039,7 +1041,7 @@ This document provides a detailed explanation of the system design for a scalabl
 **Scalability**: Leverages CloudFront’s global edge locations.      
 **Security**: Encrypted streaming links with token-based authentication.        
 
-## Cybersecurity Standards Implementation
+## Cybersecurity Standards Implemented
 
 **Data Encryption:**    
 * Data in transit secured with HTTPS.
