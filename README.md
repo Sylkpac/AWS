@@ -911,7 +911,7 @@ When building applications on the cloud, keeping them secure is just as importan
 
 Securing cloud architectures doesn’t have to be overwhelming. By keeping access limited, encrypting data, and monitoring your system, you can build an application that’s safe and reliable. Remember, security isn’t a one-time task—it’s an ongoing effort to protect your users and their data while adapting to new challenges.
 
-------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------
 # System Design for a Video-Sharing Platform<a name="video_sharing_platform"></a> 
 
 ###  Overview
