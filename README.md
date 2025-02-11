@@ -8,6 +8,7 @@
 6.  [Designing and Evaluating Architectural Styles for E-commerce Solutions](#ecommerce_styles)
 7.  [Designing Scalable Architecture](#designing_scalable_architecture)
 8.  [System Design for a Video-Sharing Platform](#video_sharing_platform)
+9.  [Creating IAM to deploy to S3](#iamtos3)
 
 ------------------------------------------------------
 
@@ -1070,4 +1071,65 @@ AWS Services: Provide built-in security, scalability, and integration capabiliti
 Separation of Concerns: Each component has a specific role, improving maintainability and scalability.
 Focus on Security: Encryption, IAM, Threat Prevention  
 
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Creating IAM to deploy to S3<a name="iamtos3"></a> 
+
+## Why do we need to create an IAM to deploy to S3?
+AWS Identity and Access Management (IAM) controls who can access S3 and what they can do. When deploying to S3, we create an IAM user with the right permissions so our deployment tools can upload files securely without exposing full admin access.
+
+## Why is this important for cybersecurity?
+Without IAM, anyone could modify or delete files in S3, leading to data breaches or accidental loss. IAM ensures only authorized users can access or change data, protecting sensitive information from attackers.
+
+
+## How to Pass an IAM Role to an EC2 Instance and Upload a File to S3
+
+### Connect to Your EC2 Instance
+1. In the AWS Console, navigate to EC2 > Instances.
+2. Select your instance and click Connect.
+3. This should take you to the command line of your EC2 instance.
+
+### Create a File on Your EC2 Instance
+Run the following command to create a file in the `/home/ec2-user/` directory:
+
+`touch /home/ec2-user/class_notes.txt`
+
+Open the file, add a personal message, and save it.
+Exit the editor and verify the file exists by running:
+
+`ls /home/ec2-user`
+
+### Assign an IAM Role to Your EC2 Instance
+
+An IAM role is needed so your EC2 instance can interact with AWS services like S3.
+
+1. In the AWS Console, go to EC2 > Instances and select your instance.
+2. Click Actions > Security > Modify IAM Role.
+3. Click Create New IAM Role.
+4. Under the Use Case section, select EC2, then click Next.
+5. In the permissions search bar, type AmazonS3FullAccess, select it, and click Next.
+6. Name the role ec2-s3, then click Create Role.
+7. Return to the Modify IAM Role page and refresh. Select the ec2-s3 role from the dropdown.
+ 
+### Verify S3 Access from EC2
+
+Go back to your EC2 terminal and run:
+
+`aws s3 ls`
+
+If a return command is returned we now have access to AWS s3 
+
+### Create an S3 Bucket (If You Don’t Have One Yet)
+In your EC2 terminal, create a new S3 bucket (name must be globally unique):
+
+`aws s3 mb s3://[your-globally-unique-bucket-name]`
+
+Confirm the bucket was created by checking S3 in the AWS Console.
+
+### Upload the File to S3
+Copy the file to your S3 bucket:
+
+`aws s3 cp /home/ec2-user/class_notes.txt s3://[your-globally-unique-bucket-name]`
+
+Verify the file exists in the AWS Console under your S3 bucket.
 
