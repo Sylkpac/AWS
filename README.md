@@ -9,6 +9,8 @@
 7.  [Designing Scalable Architecture](#designing_scalable_architecture)
 8.  [System Design for a Video-Sharing Platform](#video_sharing_platform)
 9.  [Creating IAM to deploy to S3](#iamtos3)
+10. [Adding a Bastion Host to Your VPC](#bastionvpc)
+11. 
 
 ------------------------------------------------------
 
@@ -1133,3 +1135,58 @@ Copy the file to your S3 bucket:
 
 Verify the file exists in the AWS Console under your S3 bucket.
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Adding a Bastion Host to Your VPC<a name="bastionvpc"></a> 
+
+## Objective
+By the end of this, you’ll have a bastion host set up in your VPC. This is a secure way to connect to private resources in your AWS environment without exposing them directly to the internet.
+
+## Why This Matters?
+- **For Cloud Engineers:** A Bastion Host allows secure SSH access to private resources without exposing them to the public internet.
+- **For Security Engineers:** Minimizing public access reduces attack surfaces. A Bastion Host is a controlled entry point, making it easier to monitor and restrict access.
+
+## Prerequisites
+- A VPC with at least one public subnet (for the Bastion Host) and private subnets (for internal resources).
+- An understanding of SSH and key pair authentication.
+
+## Tools Required
+- AWS Console
+
+## Step-by-Step Guide
+
+### 1. Launch a Bastion Host in EC2
+- Log in to your AWS Console.
+- Navigate to EC2 Service.
+- Click "Launch Instance" and name it `BastionHost`.
+
+### 2. Create and Download an SSH Key Pair
+- Scroll to the Key Pair section and click "Create New Key Pair."
+- Name it `bastion`.
+- Keep RSA selected and .pem as the file format.
+- Click "Create" – this will download the key file (save it securely, as you’ll need it later).
+  - **Why This Matters?**
+    - Cloud Engineers use key pairs to securely authenticate SSH sessions.
+    - Security Engineers should enforce key-based authentication.
+
+### 3. Configure the Network Settings
+- Scroll down to Network Settings and click "Edit."
+- Under VPC, select the VPC you created earlier.
+- Under Subnet, choose the first public subnet (Bastion Hosts must be in public subnets).
+- Enable Auto-assign Public IP (so you can connect to it over the internet).
+  - **Why This Matters?**
+    - Cloud Engineers need Bastion Hosts in public subnets to access private instances.
+    - Security Engineers should ensure public IPs are only assigned when absolutely necessary.
+
+### 4. Set Up Security Groups for Bastion Host
+- Click "Create a new security group" and name it `bastionSG`.
+- Under Inbound Security Group Rules, set the following:
+  - **Type:** SSH
+  - **Protocol:** TCP
+  - **Port:** 22
+  - **Source Type:** My IP (this auto-populates your public IP)
+  - **Description:** "My local public IP"
+- Click "Launch Instance."
+  - **Why This Matters?**
+    - Cloud Engineers need security groups to allow only necessary access.
+    - Security Engineers should never leave SSH open to 0.0.0.0/0 (the entire internet) to prevent unauthorized access.
