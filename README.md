@@ -10,7 +10,8 @@
 8.  [System Design for a Video-Sharing Platform](#video_sharing_platform)
 9.  [Creating IAM to deploy to S3](#iamtos3)
 10. [Adding a Bastion Host to Your VPC](#bastionvpc)
-11. 
+11. [How to SSH into Your AWS EC2 Instance](#sshec2)
+12. 
 
 ------------------------------------------------------
 
@@ -1135,7 +1136,7 @@ Copy the file to your S3 bucket:
 
 Verify the file exists in the AWS Console under your S3 bucket.
 
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Adding a Bastion Host to Your VPC<a name="bastionvpc"></a> 
 
@@ -1190,3 +1191,109 @@ By the end of this, you’ll have a bastion host set up in your VPC. This is a s
   - **Why This Matters?**
     - Cloud Engineers need security groups to allow only necessary access.
     - Security Engineers should never leave SSH open to 0.0.0.0/0 (the entire internet) to prevent unauthorized access.
+
+   -------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# How to SSH into Your AWS EC2 Instance<a name="sshec2"></a> 
+
+## Objective
+Learn how to securely connect to your EC2 instance using SSH.
+
+## Why This Matters?
+- **For Cloud Engineers:** Being able to SSH into an instance is essential for troubleshooting, configuring, and managing resources.
+- **For Security Engineers:** SSH access must be tightly controlled to prevent unauthorized logins and potential security breaches.
+
+## Prerequisites
+- An EC2 instance running in AWS.
+- A private key (`.pem` file) associated with the instance.
+- A Bash terminal (Linux, macOS, or WSL on Windows).
+
+## Tools Required
+- AWS Console
+- Bash Terminal (WSL, macOS, or Linux)
+- Private key file (`.pem`)
+
+## Step-by-Step Guide
+
+### 1. Locate Your EC2 Instance in AWS
+- Log into your AWS Console and navigate to the EC2 Service.
+- On the left-hand menu, click Instances.
+- Select the EC2 instance you want to SSH into (e.g., your BastionHost if following previous lessons).
+- Copy the Public IPv4 Address from the bottom pane.
+
+### 2. Open a Bash Terminal
+- If you're using WSL (Windows Subsystem for Linux), open Ubuntu and run:
+  ```bash
+  sudo apt update
+  sudo apt upgrade -y
+This ensures your system has the latest updates.
+
+- Move your private key (`.pem` file) to a Linux directory:
+  - Open Windows File Explorer.
+  - Cut the`.pem` file and paste it into your Ubuntu home directory:  
+`/home/<your-username>/`
+
+**Note: This should be the default directory when you start WSL.*
+
+### 3. Navigate to the Directory Containing Your `.pem` File
+In your Bash terminal, navigate to where your `.pem` file is stored:  
+`cd /home/<your-username>/`
+
+### 4. SSH into Your EC2 Instance
+- Run the following command:
+
+`ssh -i <your-key.pem> ec2-user@<Public IPv4 Address>`
+
+Example:
+`ssh -i bastion.pem ec2-user@3.123.45.67`
+First-time connection warning:
+
+**You'll see a message like this:*
+
+`The authenticity of host ... can't be established.
+Key fingerprint is SHA256:....
+Are you sure you want to continue connecting (yes/no/[fingerprint])?`
+
+Type `yes` and press Enter.   
+**Note: It won't ask you again after you established a key fingerprint with this server* 
+
+
+### Why This Matters?
+**Cloud Engineers** should verify the host fingerprint before connecting to prevent man-in-the-middle attacks.
+
+**Security Engineers** should educate teams on SSH security best practices, including verifying host authenticity.
+
+### 5. Fixing SSH "Unprotected Private Key" Error 
+If you see this error:
+
+`Warning: Unprotected private key file! Permissions 0644 are too open.`
+
+It means your `.pem` file has overly permissive permissions, which SSH won’t allow for security reasons.
+
+The number `0644` is made up of four digits:    
+0 – This is a prefix that indicates the number is in octal (base 8).  
+6 – Represents the owner's permissions.  
+4 – Represents the group's permissions.  
+4 – Represents others' (everyone else’s) permissions    
+
+### Fix it by changing file permissions:
+
+`chmod 400 bastion.pem`
+
+**Note: refer to my [Understanding File Permissions in Linux (Bash)](https://github.com/Sylkpac/Linux/blob/main/README.md#filelinux) write up to understand what the 400 means. Also the chmod command will only work if you are in the directory of the `.pem` file*
+
+Now, retry the SSH command:   
+`ssh -i bastion.pem ec2-user@<Public IPv4 Address>`
+
+### Why This Matters?
+**Cloud Engineers** must set correct file permissions to avoid security misconfigurations.
+
+**Security Engineers** should ensure private keys are not readable by unauthorized users.
+
+### 6. Confirm You're Inside the EC2 Instance
+Once successfully connected, your terminal prompt will change, example:  
+`ec2-user@ip-192-168-1-10:~$`
+
+Compare <`192-168-1-10`> from above  with the Private IPv4 Address in the AWS Console. They should match!
+
+
