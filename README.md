@@ -11,7 +11,10 @@
 9.  [Creating IAM to deploy to S3](#iamtos3)
 10. [Adding a Bastion Host to Your VPC](#bastionvpc)
 11. [How to SSH into Your AWS EC2 Instance](#sshec2)
-12. 
+12. [Using a Bastion Host to Securely SSH into Private EC2 Instances Across Availability Zones](#sshprivate)
+
+
+
 
 ------------------------------------------------------
 
@@ -1296,4 +1299,98 @@ Once successfully connected, your terminal prompt will change, example:
 
 Compare <`192-168-1-10`> from above  with the Private IPv4 Address in the AWS Console. They should match!
 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+# Using a Bastion Host to Securely SSH into Private EC2 Instances Across Availability Zones<a name="sshprivate"></a> 
+
+## Objective
+Use a bastion host as a secure jump box to SSH into two EC2 instances in a private subnet, located in different availability zones.
+
+## Prerequisites
+- Basic knowledge of AWS networking, EC2 instances, and security groups.
+- A configured AWS account.
+- SSH client (Linux, Mac, or WSL for Windows users).
+
+## Tools Required
+- AWS Console
+- Terminal/Bash Shell
+- SSH Key Pair
+
+## Step-by-Step Guide
+
+### 1. Launch Two EC2 Instances in Private Subnets
+- Go to AWS Console > EC2 Services > Instances.
+- Launch two instances:
+  - Name them `EC2App2a` and `EC2App2b`.
+  - Instance type: Free.
+  - Under Key Pair, select the existing `bastion.pem` key pair for `EC2App2a` (against best security practices, but used for this example).
+  - `EC2App2b` should not have a key pair, as it will only be accessed internally.
+
+### 2. Configure Network Settings
+- Select the correct VPC (e.g., "Project VPC").
+- Select the correct subnet for each instance - you should have named them.
+- Ensure both EC2 instances do NOT have a public IP.
+
+### 3. Configure Security Groups
+- Create and assign security groups:
+  - `EC2App2aSG` (for `EC2App2a`)
+  - `EC2App2bSG` (for `EC2App2b`)
+- Security Group Descriptions:
+  - `EC2App2aSG`: "Security Group for EC2 in AZ 2a"
+  - `EC2App2bSG`: "Security Group for EC2 in AZ 2b"
+
+### 4. Update Security Group Rules by Editing Inbound Rules
+- `EC2App2a` Security Group:
+  - Remove the default SSH inbound rule (`0.0.0.0/0`).
+  - Add a new rule:
+    - **Type:** SSH
+    - **Source:** Bastion Host’s security group ID or its Public IP.
+- `EC2App2b` Security Group:
+  - Allow ICMP (ping) from `EC2App2aSG`:
+    - **Type:** ALL ICMP - IPv4
+    - **Source:** `EC2App2aSG`
+
+### 5. SSH into Bastion Host
+- Copy the bastion host's public IPv4 address.
+- Open a Bash terminal and navigate to where bastion.pem is stored.
+
+`ssh -i bastion.pem ec2-user@<bastionhost_public_IP>`
+- If you get a "cannot resolve" error, check your public IP at [WhatIsMyIP](https://www.whatismyip.com/) and update the Bastion Host's security group with your new public IP if needed.
+
+### 6. Securely Transfer the SSH Key to the Bastion Host
+- Open another terminal window and copy the private key to the Bastion Host:    
+`scp -i bastion.pem bastion.pem ec2-user@<bastionhost_public_IP>:~/`
+- This allows the Bastion Host to use the key to SSH into EC2App2a.
+- Verify the key exists in the directory:   
+`ls`
+
+### 7. SSH from Bastion Host to EC2App2a
+- Use the private IP of EC2App2a:   
+`ssh -i bastion.pem ec2-user@<ec2app2a_private_IP>`
+- Accept the fingerprint warning.
+
+### 8. Ping EC2App2b from EC2App2a
+- Use the private IP of EC2App2b:   
+`ping <ec2app2b_private_IP>`
+- Successful pings confirm private network connectivity within the VPC.
+
+### 9. Cleanup - Terminate Instances
+- Go back to AWS Console > EC2 Services > Instances.
+- Select all three instances (Bastion Host, EC2App2a, EC2App2b).
+- Click Instance State > Terminate.
+
+### Financial Business Impact
+
+- **Cost Savings**: Using a bastion host minimizes public exposure, reducing risks that can lead to costly data breaches.
+- **Operational Efficiency**: Secure remote access allows engineers to troubleshoot and manage private instances without exposing them to the internet.
+- **Compliance**: Many industries (e.g., finance, healthcare) require strict security controls—bastion hosts help meet these requirements by enforcing controlled access.
+
+### Why This Matters to Cloud Engineers
+- **Infrastructure Security**: Helps design VPC architectures with security best practices.
+- **Networking Mastery**: Teaches essential networking principles like security groups, private/public subnets, and secure access control.
+- **Scalability**: Understanding private connectivity is crucial when deploying scalable applications in AWS.
+
+### Why This Matters to Security Engineers
+- **Minimizing Attack Surface**: Using a bastion host instead of exposing EC2 instances reduces vulnerabilities.
+- **Access Control**: Helps enforce the principle of least privilege (PoLP) by restricting SSH access.
+- **Intrusion Detection**: Bastion hosts can be configured to log all access attempts, aiding in security audits and forensic analysis.
