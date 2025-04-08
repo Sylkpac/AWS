@@ -12,8 +12,7 @@
 10. [Adding a Bastion Host to Your VPC](#bastionvpc)
 11. [How to SSH into Your AWS EC2 Instance](#sshec2)
 12. [Using a Bastion Host to Securely SSH into Private EC2 Instances Across Availability Zones](#sshprivate)
-
-
+13. [ Connecting Visual Studio Code to AWS CLI & Creating an S3 Bucket](#vscaws)
 
 
 ------------------------------------------------------
@@ -1394,3 +1393,133 @@ Use a bastion host as a secure jump box to SSH into two EC2 instances in a priva
 - **Minimizing Attack Surface**: Using a bastion host instead of exposing EC2 instances reduces vulnerabilities.
 - **Access Control**: Helps enforce the principle of least privilege (PoLP) by restricting SSH access.
 - **Intrusion Detection**: Bastion hosts can be configured to log all access attempts, aiding in security audits and forensic analysis.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Connecting Visual Studio Code to AWS CLI & Creating an S3 Bucket<a name="vscaws"></a> 
+
+## Objective
+Learn how to:
+- Connect VS Code to AWS CLI using IAM credentials
+- Clone a GitHub repo
+- Write and deploy a basic S3 bucket using a CloudFormation YAML template
+
+This is essential for anyone building in AWS or automating cloud infrastructure!
+
+## Prerequisites
+- An AWS account
+- IAM access and secret keys
+- AWS CLI installed
+- GitHub account
+- Visual Studio Code (VS Code) installed
+
+Why this matters for Cloud & Security Engineers
+ Infrastructure as Code (IaC) saves time, reduces human error, and increases repeatability. 
+
+## Tools Required
+- AWS Console
+- AWS CLI
+- Visual Studio Code
+- AWS Toolkit (VS Code extension)
+- GitHub
+
+## Step-by-Step Instructions
+### Set Up AWS Credentials
+1. Log in to the AWS Console
+2. Go to the top-right corner, click your account name/Account ID
+3. Choose Security Credentials
+4. Under Access Keys, select Create access key
+5. Choose Local code as your use case
+6. Save the .csv file it gives you (you’ll use this for AWS CLI + Toolkit login)
+
+Save the keys in your `.aws/credentials` directory or securely with a password manager.
+
+### Set Up Visual Studio Code
+1. Install Visual Studio Code from a Browser
+2. Open VS Code and go to the Extensions tab
+3. Search for and install: AWS Toolkit
+
+### Connect AWS Toolkit in VS Code
+1. When prompted, select IAM User
+2. Paste in your Access Key ID and Secret Access Key
+
+### Open a Terminal in VS Code
+1. Click Terminal > New Terminal
+2. In the terminal, run this command to test your AWS connection:
+
+`aws iam list-users`
+
+You should get a list of users if your credentials were added correctly!
+
+### Clone a GitHub Repository
+1. In VS Code, on the left panel, click AWS Toolkit > Clone Repository
+2. In GitHub, create a new repository named cloudformation (no README needs to be created)
+3. Copy the HTTPS or SSH link
+4. Paste the link into VS Code to clone the repo locally
+
+### Create Your First CloudFormation Template
+Inside your cloned repo, create a new file:
+
+`S3-bucket.yaml`
+
+Paste the following CloudFormation code:
+
+`# CloudFormationTemplateVersion`   
+`# Description`
+
+`AWSTemplateFormatVersion: '2010-09-09'  `  
+`Description: 'CloudFormation template for S3 Bucket'  `  
+`Resources: `   
+&nbsp;`S3Bucket:`   
+&nbsp;&nbsp;`Type: 'AWS::S3::Bucket' `  
+&nbsp;&nbsp;`Properties:   `  
+&nbsp;&nbsp;&nbsp;&nbsp;`BucketName: 'Sarah-S3-Bucket-Yaml'`
+
+*Note: Make sure you mind your indents
+
+## Full Template Breakdown (Line by Line) of Cloudformatoon YAML template :
+
+### Lines 1-2:
+ `# CloudFormationTemplateVersion`   
+`# Description`
+ - These are just comments (anything with # is ignored).  
+ - You could use this section to write notes for yourself, like what version or purpose the file has.   
+
+### Line 4:
+`AWSTemplateFormatVersion: '2010-09-09'`
+ - This tells AWS you're using the CloudFormation template format that started on Sept 9, 2010.
+ - It's required in every CloudFormation template, but you usually don't need to change it.   
+
+### Line 5:
+`Description: 'Cloudformation template for S3 Bucket'`
+ - A human-readable description of what your template does.
+ This helps anyone reading your file quickly understand what it's for.
+ - In this case: it's a template to create an S3 bucket.  
+
+### Line 6:
+`Resources:`
+- Here defines all the AWS resources you want CloudFormation to build.
+- Every bucket, EC2 instance, etc., goes under here.  
+
+### Line 7:
+`S3Bucket:`
+- This is a logical name you're giving to the resource in the template.
+- Think of it as a nickname CloudFormation will use internally.
+- You could name it anything, like `MyMainBucket`.  
+
+### Line 8:
+`Type: 'AWS::S3::Bucket'`
+- You're telling AWS what type of resource this is.
+- In this case: an S3 bucket.
+- The format is always written this way
+
+### Line 9:
+ `Properties:`
+ - Here's where you list all the settings and options for this S3 bucket.
+ - You can set things like the name, versioning, access control, etc.
+
+
+### Line 10:
+ `BucketName: 'Sarah-S3-Bucket-Yaml'`
+- This is the actual name that will appear in S3.
+- Bucket names must be globally unique, so make sure to change it if testing this on your own account!    
