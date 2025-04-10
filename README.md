@@ -12,7 +12,8 @@
 10. [Adding a Bastion Host to Your VPC](#bastionvpc)
 11. [How to SSH into Your AWS EC2 Instance](#sshec2)
 12. [Using a Bastion Host to Securely SSH into Private EC2 Instances Across Availability Zones](#sshprivate)
-13. [ Connecting Visual Studio Code to AWS CLI & Creating an S3 Bucket](#vscaws)
+13. [Connecting Visual Studio Code to AWS CLI & Creating an S3 Bucket](#vscaws)
+14. [Deploying and Debugging an S3 Bucket Template](#deploydebug)
 
 
 ------------------------------------------------------
@@ -1523,3 +1524,138 @@ Paste the following CloudFormation code:
  `BucketName: 'Sarah-S3-Bucket-Yaml'`
 - This is the actual name that will appear in S3.
 - Bucket names must be globally unique, so make sure to change it if testing this on your own account!    
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Deploying and Debugging an S3 Bucket Template<a name="deploydebug"></a> 
+
+## Objective:
+Learn how to deploy an Amazon S3 bucket using an AWS CloudFormation YAML template, debug errors, and verify deployment through the AWS CLI and Console.
+
+## Prerequisites:
+- AWS CLI installed and configured to Visual Studio Code
+
+## Tools Required:
+- Visual Studio Code (VSC): for editing files and running terminal commands
+- AWS CLI: to deploy infrastructure using commands
+- AWS Online Console: to visually inspect your resources and troubleshoot
+
+## Step-by-Step Procedure:
+
+### Deploying an S3 Bucket Template
+Continuing from the project “Connecting Visual Studio Code to AWS CLI & Creating an S3 Bucket,” you should already have a file called S3-Bucket.yaml containing the following:
+
+`AWSTemplateFormatVersion: '2010-09-09'`    
+`Description: 'CloudFor&nbspmation template for S3 Bucket'`
+
+`Resources:`    
+&nbsp;`S3Bucket:`   
+&nbsp;&nbsp;`Type: 'AWS::S3::Bucket'`   
+&nbsp;&nbsp;`Properties:`   
+&nbsp;&nbsp;&nbsp;&nbsp;`BucketName: 'Sarah-S3-Bucket.Yaml'`
+
+*Note: Remeber to mind your indents of this template 
+
+### Running the Create Stack Command
+Make sure your terminal is open in the same directory as your `S3-Bucket.yaml` file.    
+Then run:   
+`aws cloudformation create-stack --stack-name my-s3-bucket-stack --template-body file://S3-Bucket.yaml`
+
+### What This Command Means (Broken Down):
+|Part| Meaning |
+|------|------|
+|`aws cloudformation`| You're using AWS CloudFormation through the CLI|
+|`create-stack`| You’re creating a new stack (a collection of AWS resources)|
+|`--stack-name my-s3-bucket-stack`|Naming the stack “my-s3-bucket-stack”|
+|`--template-body file://S3-Bucket.yaml`|Telling AWS to use the contents of `S3-Bucket.yaml` as the template|
+
+The `file://` tells AWS CLI to look for a local file. If your terminal is not in the same folder, you’ll need to provide the full file path.
+
+### If It Works, You'll See:
+
+`{`
+
+&nbsp;`"StackId": "arn:aws:cloudformation:..."`    
+
+`}`
+
+### Checking Stack Status
+To check the status of your stack:
+
+`aws cloudformation describe-stacks --stack-name my-s3-bucket-stack`
+
+If you see:
+
+`"StackStatus": "ROLLBACK_COMPLETE"`
+
+### What Does `ROLLBACK_COMPLETE` Mean?
+This means CloudFormation tried to deploy your resources but something failed. In short, it “rolled back” and deleted them to avoid partial creation.
+
+## Debugging Stack Errors
+1. Go to the AWS Console
+- In your browser, log into AWS
+- In the search bar, type "CloudFormation" and click the service
+
+2. Switch to the Correct Region
+- Your stack only appears in the region where you created it
+- Use the region shown in the `StackId` output from the CLI
+
+3. Check the Stack Events
+- Click on your stack "my-s3-bucket-stack"
+- Go to the "Events" tab
+- You’ll see a detailed breakdown of what failed
+
+
+### Example Error:
+`VALIDATION_FAILED:` "bucket name should not contain uppercase characters"
+
+### Fixing the Template
+Update your template to use lowercase letters only for the bucket name:
+
+`AWSTemplateFormatVersion: '2010-09-09'`    
+`Description: 'CloudFormation template for S3 Bucket'`    
+
+`Resources:`    
+&nbsp;`S3Bucket:`   
+&nbsp;&nbsp;`Type: 'AWS::S3::Bucket'`   
+&nbsp;&nbsp;`Properties: `  
+&nbsp;&nbsp;&nbsp;&nbsp;`BucketName: 'sarah-s3-bucket-demo'    `
+
+Save the file.
+
+## Re-running the Stack
+If you try running the `create-stack` command again, you’ll get:
+
+`An error occurred (AlreadyExistsException): Stack [my-s3-bucket-stack] already exists`
+
+### Deleting the Old Stack
+Run:    
+`aws cloudformation delete-stack --stack-name my-s3-bucket-stack`
+
+Then check the deletion:      
+`aws cloudformation describe-stacks --stack-name my-s3-bucket-stack`
+
+You should get something like:    
+
+`An error occurred (ValidationError) when calling the DescribeStacks operation: Stack with id my-s3-bucket-stack does not exist`
+
+That means it was deleted!
+You can also confirm visually in the AWS Console that the stack is gone.
+
+### Now Re-Deploy the Fixed Template
+
+`aws cloudformation create-stack --stack-name my-s3-bucket-stack --template-body file://S3-Bucket.yaml`
+
+### What You Should See
+`"StackStatus": "CREATE_IN_PROGRESS" `    
+ This means it’s working!
+
+After a few moments, run:
+
+`aws cloudformation describe-stacks --stack-name my-s3-bucket-stack`
+
+Look for:
+
+`"StackStatus": "CREATE_COMPLETE"`    
+ This means your S3 bucket was successfully created!
+
