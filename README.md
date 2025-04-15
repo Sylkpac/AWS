@@ -14,6 +14,7 @@
 12. [Using a Bastion Host to Securely SSH into Private EC2 Instances Across Availability Zones](#sshprivate)
 13. [Connecting Visual Studio Code to AWS CLI & Creating an S3 Bucket](#vscaws)
 14. [Deploying and Debugging an S3 Bucket Template](#deploydebug)
+15. [Creating a VPC with Subnets using CloudFormation](#vpcwsubnets)
 
 
 ------------------------------------------------------
@@ -1658,4 +1659,186 @@ Look for:
 
 `"StackStatus": "CREATE_COMPLETE"`    
  This means your S3 bucket was successfully created!
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Creating a VPC with Subnets using CloudFormation<a name="vpcwsubnets"></a> 
+
+## Objective
+- Learn how to create a custom VPC using AWS CloudFormation.
+- Understand how to choose appropriate CIDR blocks and subnet sizes.
+- Deploy subnets across multiple availability zones (AZs).
+- Understand what each line in the CloudFormation YAML template does.
+
+## Tools Required
+- AWS CLI
+- Visual Studio Code (or another code editor)
+- CloudFormation YAML template (vpc.yaml)
+
+## CIDR Block Reference 
+*Note:* Use the CIDR Notation Column to select your subnet
+|Class|Range|CIDR Notation|Hosts|
+|-----|-----|-------------|------|
+|Class A|10.0.0.0 – 10.255.255.255|`10.0.0.0/8`|~16 million|
+|Class B|172.16.0.0 – 172.31.255.255|`172.16.0.0/12` or `172.16.0.0/16`|~65K per /16|
+|Class C|192.168.0.0 – 192.168.255.255|`192.168.0.0/16` or `192.168.1.0/24`|256 per /24|
+
+
+### Subnet Sizing Tip
+- Only use a larger subnet if you actually need the extra IPs.
+- A /24 gives you 256 IPs, which is often more than enough per subnet.
+- Using too large a range increases your attack surface, costs, and complexity.
+- `192.168.1.0/24` is very commonly used for small networks like home routers or small office setups.
+
+
+## Step-by-Step Procedure: Creating a VPC
+
+### Write This Template in VS Code
+
+`# AWSTemplateFormatVersion: '2010-09-09'`      
+`# Description: 'CloudFormation template for VPC'`
+
+`Resources:`        
+&nbsp;`MyVPC: `         
+&nbsp;&nbsp;`Type: 'AWS::EC2::VPC'`     
+&nbsp;&nbsp;`Properties:`       
+&nbsp;&nbsp;&nbsp;`CidrBlock: '172.16.0.0/16'  # Total range available for subnetting`              
+&nbsp;&nbsp;&nbsp;`EnableDnsSupport: true      # Allows DNS resolution within the VPC`      
+&nbsp;&nbsp;&nbsp;`EnableDnsHostnames: true    # Allows EC2 instances to get public DNS`        
+&nbsp;&nbsp;&nbsp;`Tags:`       
+&nbsp;&nbsp;&nbsp;&nbsp;`- Key: Name`       
+&nbsp;&nbsp;&nbsp;&nbsp;`Value: MyVPC`        
+
+## What Each Line Means
+|Line|Explanation|
+|-----|----------|
+|AWSTemplateFormatVersion|Version for CloudFormation templates. Use `2010-09-09` always.|
+|Description|Human-readable description of your stack.|
+|Resources|Section where you define all the AWS resources to create.|
+|MyVPC|Logical name for your VPC resource.|
+|Type|AWS resource type. Here, we’re creating a VPC.|
+|CidrBlock|IP range for your VPC. All subnets must be within this range.|
+|EnableDnsSupport|Enables DNS resolution for resources in the VPC.|
+|EnableDnsHostnames|Assigns hostnames to instances launched into the VPC.|
+|Tags|Add metadata (like a name) for easier identification in the AWS Console.|
+|||
+
+## Add Subnets in Different Availability Zones
+We'll break the VPC into 6 subnets:
+- 2 Public (1 in each AZ)
+- 2 App Private
+- 2 Data Private
+
+Each subnet gets a unique `/24` block (e.g. `172.16.1.0/24`, `172.16.2.0/24`, etc.) 
+
+### Full Template with 6 Subnets
+`AWSTemplateFormatVersion: '2010-09-09'`        
+`Description: 'CloudFormation template for VPC and subnets'`        
+
+`Resources:`        
+&nbsp;`MyVPC:`      
+&nbsp;&nbsp;`Type: 'AWS::EC2::VPC'`     
+&nbsp;&nbsp;`Properties:`       
+&nbsp;&nbsp;&nbsp;`CidrBlock: '172.16.0.0/16'`      
+&nbsp;&nbsp;&nbsp;`EnableDnsSupport: true`      
+&nbsp;&nbsp;&nbsp;`EnableDnsHostnames: true`        
+&nbsp;&nbsp;&nbsp;`Tags:`       
+&nbsp;&nbsp;&nbsp;&nbsp;`- Key: Name`       
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`Value: MyVPC`        
+
+&nbsp;`# Public Subnet in AZ1`      
+&nbsp;`PublicSubnet1A:`     
+&nbsp;&nbsp;`Type: 'AWS::EC2::Subnet'`      
+&nbsp;&nbsp;`Properties:`       
+&nbsp;&nbsp;&nbsp;`VpcId: !Ref MyVPC`       
+&nbsp;&nbsp;&nbsp;`CidrBlock: '172.16.1.0/24'`      
+&nbsp;&nbsp;&nbsp;`AvailabilityZone: !Select [ 0, !GetAZs '' ]`     
+&nbsp;&nbsp;&nbsp;`MapPublicIpOnLaunch: true`       
+&nbsp;&nbsp;&nbsp;`Tags:`       
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`- Key: Name`       
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`Value: PublicSubnet1A`       
+
+`# App Subnet in AZ1`     
+&nbsp;`AppPrivateSubnet1A:`     
+&nbsp;&nbsp;`Type: 'AWS::EC2::Subnet'`      
+&nbsp;&nbsp;&nbsp;`Properties:`       
+&nbsp;&nbsp;&nbsp;&nbsp;`VpcId: !Ref MyVPC`       
+&nbsp;&nbsp;&nbsp;&nbsp;`CidrBlock: '172.16.2.0/24'`      
+&nbsp;&nbsp;&nbsp;&nbsp;`AvailabilityZone: !Select [ 0, !GetAZs '' ]`     
+&nbsp;&nbsp;&nbsp;&nbsp;`Tags:`       
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`- Key: Name`       
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`Value: AppPrivateSubnet1A`       
+
+`# Data Subnet in AZ1`        
+&nbsp;`DataPrivateSubnet1A:`        
+&nbsp;&nbsp;`Type: 'AWS::EC2::Subnet'`      
+&nbsp;&nbsp;&nbsp;`Properties:`       
+&nbsp;&nbsp;&nbsp;`VpcId: !Ref MyVPC`       
+&nbsp;&nbsp;&nbsp;`CidrBlock: '172.16.3.0/24'`      
+&nbsp;&nbsp;&nbsp;`AvailabilityZone: !Select [ 0, !GetAZs '' ]`     
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`Tags:`       
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`- Key: Name`       
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`Value: DataPrivateSubnet1A`      
+
+`# Public Subnet in AZ2`      
+&nbsp;`PublicSubnet2B:`     
+&nbsp;&nbsp;`Type: 'AWS::EC2::Subnet'`      
+&nbsp;&nbsp;`Properties:`       
+&nbsp;&nbsp;&nbsp;`VpcId: !Ref MyVPC`       
+&nbsp;&nbsp;&nbsp;`CidrBlock: '172.16.4.0/24'`      
+&nbsp;&nbsp;&nbsp;`AvailabilityZone: !Select [ 1, !GetAZs '' ]`     
+&nbsp;&nbsp;&nbsp;&nbsp;`MapPublicIpOnLaunch: true`       
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`Tags:`       
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`- Key: Name`       
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`Value: PublicSubnet2B`       
+
+`# App Subnet in AZ2`     
+&nbsp;`AppPrivateSubnet2B:`     
+&nbsp;`Type: 'AWS::EC2::Subnet'`      
+&nbsp;&nbsp;&nbsp;`Properties:`       
+&nbsp;&nbsp;&nbsp;`VpcId: !Ref MyVPC`       
+&nbsp;&nbsp;&nbsp;`CidrBlock: '172.16.5.0/24'`      
+&nbsp;&nbsp;&nbsp;`AvailabilityZone: !Select [ 1, !GetAZs '' ]`     
+&nbsp;&nbsp;&nbsp;&nbsp;`Tags:`       
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`- Key: Name`       
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`Value: AppPrivateSubnet2B`       
+
+`# Data Subnet in AZ2`        
+&nbsp;`DataPrivateSubnet2B:`        
+&nbsp;&nbsp;`Type: 'AWS::EC2::Subnet'`      
+&nbsp;&nbsp;`Properties:`       
+&nbsp;&nbsp;&nbsp;`VpcId: !Ref MyVPC`       
+&nbsp;&nbsp;&nbsp;`CidrBlock: '172.16.6.0/24'`      
+&nbsp;&nbsp;&nbsp;`AvailabilityZone: !Select [ 1, !GetAZs '' ]`     
+&nbsp;&nbsp;&nbsp;&nbsp;`Tags:`       
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`- Key: Name`       
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`Value: DataPrivateSubnet2B`      
+
+### Deploy the Stack via CLI
+
+`aws cloudformation create-stack --stack-name vpc-stack --template-body file://vpc.yaml`
+
+### Check Stack Status
+
+`aws cloudformation describe-stacks --stack-name vpc-stack`
+
+Or:
+- Go to AWS Console > CloudFormation.
+- Look for your stack.
+- Check for CREATE_COMPLETE.
+
+
+## Troubleshooting
+If something breaks:        
+`aws cloudformation delete-stack --stack-name vpc-stack`        
+
+Then redeploy after fixing your file:       
+`aws cloudformation create-stack --stack-name vpc-stack --template-body file://vpc.yaml`
+
+### Verify in Console
+After your stack says "CREATE_COMPLETE":
+- Go to AWS Console > CloudFormation
+- Select your stack
+- Then go to VPC > Your VPCs
+- Confirm the VPC and subnets were created
 
