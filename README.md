@@ -15,6 +15,7 @@
 13. [Connecting Visual Studio Code to AWS CLI & Creating an S3 Bucket](#vscaws)
 14. [Deploying and Debugging an S3 Bucket Template](#deploydebug)
 15. [Creating a VPC with Subnets using CloudFormation](#vpcwsubnets)
+16. [Adding Networking to Your VPC & Troubleshooting CloudFormation Errors](#vpcnetwork)
 
 
 ------------------------------------------------------
@@ -1842,3 +1843,235 @@ After your stack says "CREATE_COMPLETE":
 - Then go to VPC > Your VPCs
 - Confirm the VPC and subnets were created
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Adding Networking to Your VPC & Troubleshooting CloudFormation Errors<a name="vpcnetwork"></a> 
+
+## Objective
+To update your existing VPC CloudFormation stack with public/private subnets, internet gateway, and routing configurations. You’ll also troubleshoot any issues that arise during deployment.
+
+## Tools Required
+- AWS CLI
+- AWS Console (specifically the CloudFormation dashboard)
+- VS Code
+- Terminal or Command Prompt
+
+
+## Step-by-Step Procedure
+1. Add the Networking Template      
+Update your existing `vpc.yaml` file with the expanded VPC config below (see full final code at the bottom). 
+
+```
+# Internet Gateway
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: MyVPC-IGW
+# Attach Internet Gateway to VPC
+  AttachGateway:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcID: !Ref MyVPC
+      InternetGatewayId: !Ref InternetGateway
+# Public Route Table  
+  PublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: PublicRouteTable
+# Public Routes
+  PublicRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: AttachGateway
+    Properties: 
+      RouteTable: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0  
+      GatewayId: !Ref InternetGateway
+# Public Subnet 1A Route Table Association
+  PublicSubnet1ARouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet1A
+      RouteTableId: !Ref PublicRouteTable
+# Public Subnet 2B Route Table Association
+  PublicSubnet2BRouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet2B
+      RouteTableId: !Ref PublicRouteTable
+```
+
+
+
+Make sure to:
+- Save your file before updating the stack.
+- Validate the YAML formatting.
+
+
+
+2. Update the CloudFormation Stack      
+Run the following command:      
+    `aws cloudformation update-stack --stack-name vpc-stack --template-body file://vpc.yaml `
+
+Expected Output:
+```
+{
+  "StackId": "arn:aws:cloudformation:..."
+}
+```
+
+3. Check Stack Provisioning Status      
+Run:        
+`aws cloudformation describe-stacks --stack-name vpc-stack`     
+
+4. Troubleshoot Errors Using the Console        
+- Go to the CloudFormation section of the AWS Console.        
+- Click on your vpc-stack.
+- Go to the Events tab.
+- In the top right, click 'View root cause' to identify what failed.
+
+5. Example Error: Invalid ID for InternetGateway        
+If you see:     
+`Invalid id: InternetGateway`
+
+6. Fix the Error in vpc.yaml        
+In your `AttachGateway` block, make sure this line is correct:      
+`InternetGatewayId: !Ref InternetGateway`
+
+7. Retry the Stack Update       
+After fixing and saving the file, rerun:        
+`aws cloudformation update-stack --stack-name vpc-stack --template-body file://vpc.yaml`
+
+Wait a few minutes, then check progress again with:
+
+`aws cloudformation describe-stacks --stack-name vpc-stack`
+
+Repeat this troubleshooting loop until the stack status becomes:
+`"StackStatus": "UPDATE_COMPLETE"`
+
+## Final Template Code (vpc.yaml)
+Here’s the complete working template you should have after resolving issues:
+
+```
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Cloudformation template for VPC'
+
+Resources:
+# MyVPC
+  MyVPC:  
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: '172.16.0.0/16'
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: MyVPC
+# Public Subnets in Az1
+  PublicSubnet1A:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: '172.16.1.0/24'
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: PublicSubnet1A
+# App Private Subnets in Az1
+  AppPrivateSubnet1A: 
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: '172.16.2.0/24'
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: AppPrivateSubnet1A
+# Data Private Subnets in Az1
+  DataPrivateSubnet1A:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: '172.16.3.0/24'
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: DataPrivateSubnet1A
+# Public Subnets in Az2
+  PublicSubnet2B:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: '172.16.4.0/24'
+      AvailabilityZone: !Select [ 1, !GetAZs '' ] 
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: PublicSubnet2B
+# App Private Subnets in Az2
+  AppPrivateSubnet2B:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: '172.16.5.0/24'
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: AppPrivateSubnet2B
+# Data Private Subnets in Az2
+  DataPrivateSubnet2B:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: '172.16.6.0/24'
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: DataPrivateSubnet2B
+# Internet Gateway
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: MyVPC-IGW
+# Attach Internet Gateway to VPC
+  AttachGateway:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref MyVPC
+      InternetGatewayId: !Ref InternetGateway
+# Public Route Table  
+  PublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: Name
+          Value: PublicRouteTable
+# Public Routes
+  PublicRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: AttachGateway
+    Properties: 
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0  
+      GatewayId: !Ref InternetGateway
+# Public Subnet 1A Route Table Association
+  PublicSubnet1ARouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet1A
+      RouteTableId: !Ref PublicRouteTable
+# Public Subnet 2B Route Table Association
+  PublicSubnet2BRouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet2B
+      RouteTableId: !Ref PublicRouteTable
+```
